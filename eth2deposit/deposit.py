@@ -54,9 +54,9 @@ def check_python_version() -> None:
 @click.command()
 @click.option(
     '--num_validators',
+    prompt='Please choose how many validators you wish to run',
     required=True,
-    type=int,
-    default=5
+    type=int
 )
 @click.option(
     '--mnemonic',
