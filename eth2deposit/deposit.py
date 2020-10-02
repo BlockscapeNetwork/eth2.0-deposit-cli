@@ -93,6 +93,7 @@ def main(num_validators: int, mnemonic: str, mnemonic_language: str, withdrawal_
     if not os.path.exists(folder):
         os.mkdir(folder)
     click.clear()
+    click.echo(RHINO_0)
     click.echo('Creating your keys.')
     credentials = CredentialList.from_mnemonic(
         mnemonic=mnemonic,
