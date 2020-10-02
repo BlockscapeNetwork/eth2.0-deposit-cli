@@ -54,15 +54,22 @@ def check_python_version() -> None:
 @click.command()
 @click.option(
     '--num_validators',
-    prompt='Please choose how many validators you wish to run',
     required=True,
     type=int,
+    default=5
+)
+@click.option(
+    '--mnemonic',
+    default='',
 )
 @click.option(
     '--mnemonic_language',
-    prompt='Please choose your mnemonic language',
     type=click.Choice(languages, case_sensitive=False),
     default='english',
+)
+@click.option(
+    '--withdrawal_pk',
+    default='',
 )
 @click.option(
     '--folder',
@@ -71,27 +78,29 @@ def check_python_version() -> None:
 )
 @click.option(
     '--chain',
-    prompt='Please choose the (mainnet or testnet) network/chain name',
     type=click.Choice(ALL_CHAINS.keys(), case_sensitive=False),
     default=MAINNET,
 )
 @click.password_option(prompt='Type the password that secures your validator keystore(s)')
-def main(num_validators: int, mnemonic_language: str, folder: str, chain: str, password: str) -> None:
+def main(num_validators: int, mnemonic: str, mnemonic_language: str, withdrawal_pk: str, folder: str, chain: str, password: str) -> None:
     check_python_version()
-    mnemonic = generate_mnemonic(mnemonic_language, WORD_LISTS_PATH)
+    if not mnemonic:
+        mnemonic = generate_mnemonic(mnemonic_language, WORD_LISTS_PATH)
+    
     amounts = [MAX_DEPOSIT_AMOUNT] * num_validators
     folder = os.path.join(folder, DEFAULT_VALIDATOR_KEYS_FOLDER_NAME)
     setting = get_setting(chain)
     if not os.path.exists(folder):
         os.mkdir(folder)
     click.clear()
-    click.echo(RHINO_0)
+    click.echo('Using mnemonic:\n%s' % mnemonic)
     click.echo('Creating your keys.')
     credentials = CredentialList.from_mnemonic(
         mnemonic=mnemonic,
         num_keys=num_validators,
         amounts=amounts,
         fork_version=setting.GENESIS_FORK_VERSION,
+        withdrawal_pk=withdrawal_pk
     )
     click.echo('Saving your keystore(s).')
     keystore_filefolders = credentials.export_keystores(password=password, folder=folder)
@@ -107,7 +116,6 @@ def main(num_validators: int, mnemonic_language: str, folder: str, chain: str, p
         raise ValidationError("Failed to verify the deposit data JSON files.")
 
     click.echo('\nSuccess!\nYour keys can be found at: %s' % folder)
-    click.pause('\n\nPress any key.')
 
 
 if __name__ == '__main__':

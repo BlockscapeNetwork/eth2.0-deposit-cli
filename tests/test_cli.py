@@ -41,7 +41,7 @@ def test_deposit(monkeypatch) -> None:
         os.mkdir(my_folder_path)
 
     runner = CliRunner()
-    inputs = ['5', 'english', 'mainnet', 'MyPassword', 'MyPassword', 'fakephrase']
+    inputs = ['MyPassword', 'MyPassword', 'fakephrase']
     data = '\n'.join(inputs)
     result = runner.invoke(main, ['--folder', my_folder_path], input=data)
 

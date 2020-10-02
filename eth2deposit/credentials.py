@@ -31,7 +31,7 @@ class Credential:
     A Credential object contains all of the information for a single validator and the corresponding functionality.
     Once created, it is the only object that should be required to perform any processing for a validator.
     """
-    def __init__(self, *, mnemonic: str, index: int, amount: int, fork_version: bytes):
+    def __init__(self, *, mnemonic: str, index: int, amount: int, fork_version: bytes, withdrawal_pk: str):
         # Set path as EIP-2334 format
         # https://eips.ethereum.org/EIPS/eip-2334
         purpose = '12381'
@@ -40,6 +40,10 @@ class Credential:
         withdrawal_key_path = f'm/{purpose}/{coin_type}/{account}/0'
         self.signing_key_path = f'{withdrawal_key_path}/0'
 
+        if withdrawal_pk:
+            self.custom_withdrawal_pk = bytes.fromhex(withdrawal_pk)
+        else:
+            self.custom_withdrawal_pk = ''
         # Do NOT use password for seed generation.
         self.withdrawal_sk = mnemonic_and_path_to_key(mnemonic=mnemonic, path=withdrawal_key_path, password='')
         self.signing_sk = mnemonic_and_path_to_key(mnemonic=mnemonic, path=self.signing_key_path, password='')
@@ -57,7 +61,10 @@ class Credential:
     @property
     def withdrawal_credentials(self) -> bytes:
         withdrawal_credentials = BLS_WITHDRAWAL_PREFIX
-        withdrawal_credentials += SHA256(self.withdrawal_pk)[1:]
+        if self.custom_withdrawal_pk:
+            withdrawal_credentials += SHA256(self.custom_withdrawal_pk)[1:]
+        else:
+            withdrawal_credentials += SHA256(self.withdrawal_pk)[1:]
         return withdrawal_credentials
 
     @property
@@ -124,13 +131,14 @@ class CredentialList:
                       num_keys: int,
                       amounts: List[int],
                       fork_version: bytes,
-                      start_index: int=0) -> 'CredentialList':
+                      start_index: int=0,
+                      withdrawal_pk: str) -> 'CredentialList':
         if len(amounts) != num_keys:
             raise ValueError(
                 f"The number of keys ({num_keys}) doesn't equal to the corresponding deposit amounts ({len(amounts)})."
             )
         key_indices = range(start_index, start_index + num_keys)
-        return cls([Credential(mnemonic=mnemonic, index=index, amount=amounts[index], fork_version=fork_version)
+        return cls([Credential(mnemonic=mnemonic, index=index, amount=amounts[index], fork_version=fork_version, withdrawal_pk=withdrawal_pk)
                     for index in key_indices])
 
     def export_keystores(self, password: str, folder: str) -> List[str]:

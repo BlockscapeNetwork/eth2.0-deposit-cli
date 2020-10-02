@@ -11,4 +11,5 @@ def test_from_mnemonic():
             amounts=[32, 32],
             fork_version=bytes.fromhex('00000001'),
             start_index=1,
+            withdrawal_pk=""
         )
