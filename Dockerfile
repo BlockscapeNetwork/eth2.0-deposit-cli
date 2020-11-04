@@ -1,4 +1,6 @@
-FROM python:3
+FROM python:3.8-alpine
+
+RUN apk add --update make g++
 
 WORKDIR /app
 COPY . .
