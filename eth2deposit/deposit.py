@@ -84,16 +84,15 @@ def check_python_version() -> None:
 @click.password_option(prompt='Type the password that secures your validator keystore(s)')
 def main(num_validators: int, mnemonic: str, mnemonic_language: str, withdrawal_pk: str, folder: str, chain: str, password: str) -> None:
     check_python_version()
-    if not mnemonic:
-        mnemonic = generate_mnemonic(mnemonic_language, WORD_LISTS_PATH)
-    
     amounts = [MAX_DEPOSIT_AMOUNT] * num_validators
     folder = os.path.join(folder, DEFAULT_VALIDATOR_KEYS_FOLDER_NAME)
     setting = get_setting(chain)
     if not os.path.exists(folder):
         os.mkdir(folder)
-    click.clear()
-    click.echo(RHINO_0)
+    if not mnemonic:
+        mnemonic = generate_mnemonic(mnemonic_language, WORD_LISTS_PATH)
+        click.clear()
+        click.echo(RHINO_0)
     click.echo('Creating your keys.')
     credentials = CredentialList.from_mnemonic(
         mnemonic=mnemonic,
